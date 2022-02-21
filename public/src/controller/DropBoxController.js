@@ -42,6 +42,54 @@ class DropBoxController {
     return this.listFilesEl.querySelectorAll('.selected');
   }
 
+  removeFolderTask(ref, name) {
+    return new Promise((resolve, reject) => {
+      let folderRef = this.getFirebaseRef(`${ref}/${name}`);
+
+      folderRef.on('value', snapshot => {
+
+        folderRef.off('value');
+
+        snapshot.forEach(item => {
+
+          let data = item.val();
+          data.key = item.key;
+
+          if (data.type === 'folder') {
+            this.removeFolderTask(`${ref}/${name}`, data.name).then(() => {
+              resolve({
+                fields: {
+                  key: data.key
+                }
+              })
+            }).catch(err => {
+              reject(err);
+            });
+          } else if (data.type) {
+            this.removeFile(`${ref}/${name}`, data.name).then(() => {
+              resolve({
+                fields: {
+                  key: data.key
+                }
+              })
+            }).catch(err => {
+              reject(err);
+            })
+          }
+
+        })
+
+        folderRef.remove();
+      })
+    })
+  }
+
+  removeFile(ref, name) {
+
+    let fileRef = firebase.storage().ref(ref).child(name);
+    return fileRef.delete();      
+  }
+
   removeTask() {
     let promises = [];
 
@@ -51,12 +99,36 @@ class DropBoxController {
 
       console.log(key);
 
-      let formData = new FormData();
+      // Estava sendo desta forma pois estava sendo utilizado o RealTime Database Firebase
+      // let formData = new FormData();
+      // formData.append('fullPath', file.fullPath);
+      // formData.append('key', key);
+      // promises.push(this.ajax('/file', 'DELETE', formData));
 
-      formData.append('filepath', file.filepath);
-      formData.append('key', key);
+      // Alterado pois agora está sendo utilizado o Storage do Firebase
+      promises.push(new Promise((resolve, reject) => {
 
-      promises.push(this.ajax('/file', 'DELETE', formData));
+        if (file.type === 'folder') {
+
+          this.removeFolderTask(this.currentFolder.join('/'), file.name).then(() => {
+            resolve({
+              fields: {
+                key
+              }
+            });
+          });
+
+        } else if (file.type) {
+          this.removeFile(this.currentFolder.join('/'), file.name).then(() => {
+            resolve({
+              fields: {
+                key
+              }
+            });
+          });
+        }
+
+      }));
 
     });
 
@@ -120,17 +192,22 @@ class DropBoxController {
 
   initEvents() {
 
-
     this.btnNewFolder.addEventListener('click', event => {
 
-      let originalFilename = prompt('Nome da nova pasta:');
+      let name = prompt('Nome da nova pasta:');
 
-      if (originalFilename) {
+      if (name) {
         this.getFirebaseRef().push().set({
 
-          originalFilename,
-          mimetype: 'folder',
-          filepath: this.currentFolder.join('/')
+          // forma que estava sendo salvo antes no RealTime Database do Firebase
+          // originalFilename,
+          // mimetype: 'folder',
+          // filepath: this.currentFolder.join('/')
+
+          // Agora utilizando o Storage Firebase
+          name,
+          type: 'folder',
+          path: this.currentFolder.join('/')
         });
       }
 
@@ -143,8 +220,7 @@ class DropBoxController {
 
           responses.forEach(response => {
             if (response.fields.key) {
-              this.getFirebaseRef().child
-              (response.fields.key).remove();
+              this.getFirebaseRef().child(response.fields.key).remove();
             }
           })
 
@@ -159,10 +235,10 @@ class DropBoxController {
       let li = this.getSelection()[0];
       let file = JSON.parse(li.dataset.file);
 
-      let name = prompt('Renomar o arquivo:', file.originalFilename);
+      let name = prompt('Renomar o arquivo:', file.name);
 
       if (name) {
-        file.originalFilename = name;
+        file.name = name;
 
         this.getFirebaseRef().child(li.dataset.key).set(file);
       }
@@ -192,11 +268,25 @@ class DropBoxController {
 
     this.inputFilesEl.addEventListener('change', event => {
       this.btnSendFileEl.disabled = true;
-      this.uploadTask(event.target.files)
-        .then((responses) => {
+      this.uploadTask(event.target.files).then((responses) => {
+
+          // Desta forma recebe a resposta do ajax (Promise) e salva as referências no RealTima Firabase
+          // responses.forEach((resp) => {
+          //   this.getFirebaseRef().push().set(resp.files['input-file']);
+          // });
+
+          // Agora está sendo feito desta forma pois está sendo utilizado o Storage do Firebase 
+          // que retorna propriedades diferentes
           responses.forEach((resp) => {
-            this.getFirebaseRef().push().set(resp.files['input-file']);
-          });
+             this.getFirebaseRef().push().set({
+               name: resp.name,
+               type: resp.contentType,
+               path: resp.downloadURLs[0],
+               size: resp.size
+             });
+           });
+
+          console.log('responses:', responses);
 
           this.uploadComplete();
         })
@@ -259,26 +349,60 @@ class DropBoxController {
   }
 
   uploadTask(files) {
+
     let promises = [];
 
     [...files].forEach((file) => {
-      let formData = new FormData();
 
-      formData.append('input-file', file);
+      // Desta forma os arquivos seram salvos em servidores locais
+      // let formData = new FormData();
 
-      promises.push(
-        this.ajax(
-          '/upload',
-          'POST',
-          formData,
-          () => {
-            this.uploadProgress(event, file);
-          },
-          () => {
-            this.startUploadTime = Date.now();
-          }
-        )
-      );
+      // formData.append('input-file', file);
+
+      // promises.push(
+      //   this.ajax(
+      //     '/upload',
+      //     'POST',
+      //     formData,
+      //     () => {
+      //       this.uploadProgress(event, file);
+      //     },
+      //     () => {
+      //       this.startUploadTime = Date.now();
+      //     }
+      //   )
+      // );
+
+      // Alterado para está forma, pois assim os arquivos ficaram em Nuvem no Firebase Storage
+
+      promises.push(new Promise((resolve, reject) => {
+
+        let fileRef = firebase.storage().ref(this.currentFolder.join('/')).child(file.name);
+
+        let task = fileRef.put(file);
+
+        task.on('state_changed', snapshot => {
+
+          this.uploadProgress({
+            loaded: snapshot.bytesTransferred,
+            total: snapshot.totalBytes
+          }, file);
+
+        }, error => {
+
+          console.error(error);
+          reject(error);
+
+        }, () => {
+
+            fileRef.getMetadata().then(metadata => {
+            resolve(metadata);
+
+          }).catch(error => {      
+            reject(error);
+          });
+        });
+      }));
     });
 
     return Promise.all(promises);
@@ -293,7 +417,7 @@ class DropBoxController {
 
     this.progressBarEl.style.width = `${porcent}%`;
 
-    this.nameFileEl.innerHTML = file.originalFilename;
+    this.nameFileEl.innerHTML = file.name;
     this.timeleftEl.innerHTML = this.formatTimeToHuman(timeleft);
   }
 
@@ -319,7 +443,8 @@ class DropBoxController {
 
   getFileIconView(file) {
 
-    switch (file.mimetype) {
+    // Antes estava sendo utilizado mimetype no RealTime Database Firebase
+    switch (file.type) {
       case 'folder':
         return `
                 <div style="display: flex; flex-direction: column; align-items: center;"><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
@@ -414,7 +539,7 @@ style=" fill:#000000;"><path fill="#e64a19" d="M7 12L29 4 41 7 41 41 29 44 7 36 
 
     li.innerHTML = `
       ${this.getFileIconView(file)}
-      <div class="name text-center">${file.originalFilename}</div>
+      <div class="name text-center">${file.name}</div>
     `;
     this.initEventsLi(li);
 
@@ -431,7 +556,7 @@ style=" fill:#000000;"><path fill="#e64a19" d="M7 12L29 4 41 7 41 41 29 44 7 36 
         let key = snapshotItem.key;
         let data = snapshotItem.val();
 
-        if (data.mimetype) {
+        if (data.type) {
           this.listFilesEl.appendChild(this.getFileView(data, key));
         }
       });
@@ -444,15 +569,15 @@ style=" fill:#000000;"><path fill="#e64a19" d="M7 12L29 4 41 7 41 41 29 44 7 36 
 
       let file = JSON.parse(li.dataset.file);
 
-      switch (file.mimetype) {
+      switch (file.type) {
 
         case 'folder':
-          this.currentFolder.push(file.originalFilename);
+          this.currentFolder.push(file.name);
           this.openFolder();
           break;
 
         default:
-          window.open(`/file?path=${file.filepath}`);
+          window.open(file.path);
       }
 
     });

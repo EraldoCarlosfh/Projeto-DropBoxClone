@@ -56,11 +56,11 @@ router.delete('/file', (req, res) => {
 
   form.parse(req, (err, fields, files) => {
 
-    let filepath = fields.filepath;
+    let path = fields.path;
     
-    if (fs.existsSync(filepath)) {
+    if (fs.existsSync(path)) {
 
-      fs.unlink(filepath, err => {
+      fs.unlink(path, err => {
 
         if (err) {
           res.status(400).json({
