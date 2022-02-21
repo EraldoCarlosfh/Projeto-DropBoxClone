@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EraldoCarlosfh/Projeto-DropBoxClone.git"
+    "url": "git+https://github.com/eraldocarlosfh/projeto-dropbox-clone.git"
   },
   "author": "Eraldo Carlos",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/EraldoCarlosfh/Projeto-DropBoxClone/issues"
+    "url": "https://github.com/eraldocarlosfh/projeto-dropbox-clone/issues"
   },
-  "homepage": "https://github.com/EraldoCarlosfh/Projeto-DropBoxClone#readme",
+  "homepage": "https://github.com/eraldocarlosfh/projeto-dropbox-clone#readme",
   "dependencies": {
     "ionicons": "^2.0.1",
     "bootstrap": "^4.1.0"

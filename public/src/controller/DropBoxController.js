@@ -24,9 +24,22 @@ class DropBoxController {
   }
 
   connectFirebase() {
+	  
+	   // Coloque as informações do seu banco de dados aqui.
+    // firebase.initializeApp(firebaseConfig);
 
-     // Coloque as informações do seu banco de dados aqui.
-    // firebase.initializeApp(firebaseConfig);   
+    const firebaseConfig = {
+      apiKey: 'AIzaSyB5qrLhffQx7wH_tmWie6RNacX2RL3bAj0',
+      authDomain: 'dropboxclone-e895f.firebaseapp.com',
+      databaseURL: 'https://dropboxclone-e895f-default-rtdb.firebaseio.com',
+      projectId: 'dropboxclone-e895f',
+      storageBucket: 'dropboxclone-e895f.appspot.com',
+      messagingSenderId: '955428696045',
+      appId: '1:955428696045:web:20b000efff8737958041e4',
+      measurementId: 'G-S9PXXEV480'
+    };
+
+    firebase.initializeApp(firebaseConfig);   
   }
 
   getSelection() {
