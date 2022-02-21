@@ -20,5 +20,5 @@ Neste projeto está sendo utilizado **RealTime Database do Firebase** para salva
 
 ### **Frontend**
 
-Após efetuar o Clone do Projeto pelo git, acesse a pasta do Projeto e inicie o diretório no visual code, feito isto digite o comando **npm install** ou **npm i** para baixar as bibliotecas e dependências do projeto, neste projeto também está sendo utilizado o bower então se não tiver o bower instaldo execute o comando **npm install bower** e após isto **bower install**,  finalizado este processo inicie a aplicação com o comando **npm start**.
+Após efetuar o Clone do Projeto pelo git, acesse a pasta do Projeto e inicie o diretório no visual code, feito isto digite o comando **npm install** ou **npm i** para baixar as bibliotecas e dependências do projeto, neste projeto também está sendo utilizado o bower se não tiver o bower instalado efetue o comando **npm install bower** mais antes acesse a pasta onde se encontra o arquivo **bower.json** (**pasta public**) com o bower já instaldo execute **bower install**,  finalizado este processo inicie a aplicação com o comando **npm start**.
 
