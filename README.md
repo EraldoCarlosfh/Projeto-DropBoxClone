@@ -1,4 +1,4 @@
-# Projeto DropBox Clone - JavaScript - Eraldo Carlos
+# Projeto DropBox Clone - JavaScript
 
 ### Projeto
 
