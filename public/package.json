@@ -1,0 +1,23 @@
+{
+  "name": "projeto-dropbox-clone",
+  "version": "1.0.0",
+  "description": "Projeto DropBox Clone",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eraldocarlosfh/projeto-dropbox-clone.git"
+  },
+  "author": "Eraldo Carlos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eraldocarlosfh/projeto-dropbox-clone/issues"
+  },
+  "homepage": "https://github.com/eraldocarlosfh/projeto-dropbox-clone#readme",
+  "dependencies": {
+    "ionicons": "^2.0.1",
+    "bootstrap": "^4.1.0"
+  }
+}
